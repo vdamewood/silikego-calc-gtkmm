@@ -54,11 +54,11 @@ EvalWindow::EvalWindow(
 
 void EvalWindow::Calculate()
 {
-	std::unique_ptr<Silikego::SyntaxTreeNode> ResultTree =
+	Silikego::SyntaxTreeNode ResultTree =
 		Silikego::ParseInfix(
 		std::unique_ptr<Silikego::DataSource>(new Silikego::StringSource(
 			MyInput->get_text().c_str())));
-	Silikego::Value Value = ResultTree->Evaluate(MyCaller);
+	Silikego::Value Value = ResultTree.Evaluate(MyCaller);
 
 	Glib::ustring ResultString;
 	switch (Value.Status())
