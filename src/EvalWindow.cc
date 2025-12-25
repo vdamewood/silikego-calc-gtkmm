@@ -42,8 +42,8 @@ EvalWindow::EvalWindow(
 	MyInput(builder->get_widget<Gtk::Entry>("Input")),
 	MyOutput(builder->get_widget<Gtk::Label>("Output"))
 {
-	MyCaller.InstallOperators();
-	MyCaller.InstallFunctions();
+	Silikego::InstallOperators(MyCaller);
+	Silikego::InstallFunctions(MyCaller);
 	MyButton->signal_clicked().connect(
 		sigc::mem_fun(
 			*this,
@@ -58,40 +58,45 @@ void EvalWindow::Calculate()
 		Silikego::ParseInfix(
 		std::unique_ptr<Silikego::DataSource>(new Silikego::StringSource(
 			MyInput->get_text().c_str())));
-	Silikego::Value Value = ResultTree.Evaluate(MyCaller);
+	Silikego::Value Value = ResultTree.evaluate(MyCaller);
 
 	Glib::ustring ResultString;
-	switch (Value.Status())
+	switch (Value.status())
 	{
-	case Silikego::ValueStatus::INTEGER:
-		ResultString = std::to_string(Value.Integer());
+	case Silikego::ValueStatus::Integer:
+		ResultString = std::to_string(Value.toInteger());
 		break;
-	case Silikego::ValueStatus::FLOAT:
-		ResultString = std::to_string(Value.Float());
+	case Silikego::ValueStatus::Real:
+		ResultString = std::to_string(Value.toReal());
 		break;
-	case Silikego::ValueStatus::MEMORY_ERR:
-		ResultString = "Memory error";
-		break;
-	case Silikego::ValueStatus::SYNTAX_ERR:
-		ResultString = "Syntax error";
-		break;
-	case Silikego::ValueStatus::ZERO_DIV_ERR:
-		ResultString = "Division by zero";
-		break;
-	case Silikego::ValueStatus::BAD_FUNCTION:
-		ResultString = "Function not found";
-		break;
-	case Silikego::ValueStatus::BAD_ARGUMENTS:
-		ResultString = "Bad argument count";
-		break;
-	case Silikego::ValueStatus::DOMAIN_ERR:
-		ResultString = "Domain error";
-		break;
-	case Silikego::ValueStatus::RANGE_ERR:
-		ResultString = "Range error";
-		break;
-	default:
-		ResultString = "Unexpected error";
+	case Silikego::ValueStatus::Error:
+		switch (Value.toError())
+		{
+		case Silikego::Error::Memory:
+			ResultString = "Memory error";
+			break;
+		case Silikego::Error::Syntax:
+			ResultString = "Syntax error";
+			break;
+		case Silikego::Error::ZeroDivision:
+			ResultString = "Division by zero";
+			break;
+		case Silikego::Error::FunctionName:
+			ResultString = "Function not found";
+			break;
+		case Silikego::Error::FunctionArguments:
+			ResultString = "Bad argument count";
+			break;
+		case Silikego::Error::Domain:
+			ResultString = "Domain error";
+			break;
+		case Silikego::Error::Range:
+			ResultString = "Range error";
+			break;
+		default:
+			ResultString = "Unexpected error";
+			break;
+			}
 	}
 
 	MyOutput->set_text(ResultString);
